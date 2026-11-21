@@ -1,0 +1,57 @@
+# ============================================================
+# Intel Quartus Prime: artefatti di compilazione
+# ============================================================
+db/
+incremental_db/
+output_files/
+greybox_tmp/
+simulation/
+*.qws
+*.rpt
+*.summary
+*.smsg
+*.done
+*.jdi
+*.pin
+*.sld
+*.sof
+*.pof
+*.rbf
+*.jic
+*.cdf
+*.qar
+*.qarlog
+*.qdf
+*.bak
+*.tmp
+c5_pin_model_dump.txt
+*_assignment_defaults.qdf
+
+# Platform Designer (Qsys): file generati
+*/synthesis/
+*/simulation/
+*.sopcinfo
+*.html
+.qsys_edit/
+
+# ============================================================
+# Simulazione: Questa / ModelSim
+# ============================================================
+work/
+transcript
+vsim.wlf
+*.wlf
+wlf*
+modelsim.ini
+vish_stacktrace.vstf
+qrun.out/
+*.vcd
+
+# ============================================================
+# Editor e sistema operativo
+# ============================================================
+.vscode/
+.DS_Store
+Thumbs.db
+*~
+*.swp
