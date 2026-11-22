@@ -1,22 +1,22 @@
 `timescale 1ns/1ns
 
-module uart_tx_testbench;
+module tb_uart_tx;
 
 parameter ck_period = 20;
 parameter ck_half_period = ck_period / 2;
 parameter ck_hold  = 1;	// data hold time
 
-    reg Master_clock, Master_resetB, LD_sig, SHIFT_sig;
-    reg [7:0] DIN_sig;
-    wire DOUT_sig;
+    reg Master_clock, Master_resetB, START_sig;
+    reg [7:0] DATA_sig;
+    wire TX_sig, BUSY_sig;
 
 uart_tx DUT(
     .CLK(Master_clock),
     .RSTb(Master_resetB),
-    .LD(LD_sig),
-    .SHIFT(SHIFT_sig),
-    .DIN(DIN_sig),
-    .DOUT(DOUT_sig)
+    .START(START_sig),
+    .DATA(DATA_sig),
+    .TX(TX_sig),
+    .BUSY(BUSY_sig)
     );
 
 // Time 0 values
@@ -24,9 +24,8 @@ uart_tx DUT(
     begin
         Master_clock = 0;
         Master_resetB = 1;
-        LD_sig = 0;
-        SHIFT_sig = 0;
-        DIN_sig = 8'h00;
+        START_sig = 0;
+        DATA_sig = 8'h00;
     end
     
 // Main test vectors
@@ -37,9 +36,9 @@ uart_tx DUT(
         issue_RESET;
 
         send_byte(8'h01);	// just the LSB set
-        Sleep(10);
+        Sleep(4);
         send_byte(8'h0A);	// 1010
-        Sleep(10);
+        Sleep(4);
         send_byte(8'h55);
 
         $display("# End Simulation @%0t ns",$stime);
@@ -75,20 +74,16 @@ begin
 end
 endtask // issue_RESET
 
-// Send one byte: apply DIN, LD pulse, then 10 SHIFT pulses
+// Send one byte: apply DATA, one START pulse, then wait for BUSY to fall
 task send_byte;
 input [7:0] data;
-integer k;
 begin
     $display("# Sending %b @%0t ns", data, $stime);
-    DIN_sig = data;
-    #ck_period LD_sig = 1;
-    #ck_period LD_sig = 0;
-    for (k = 0; k < 10; k = k + 1)
-    begin
-        #ck_period SHIFT_sig = 1;
-        #ck_period SHIFT_sig = 0;
-    end
+    DATA_sig = data;
+    #ck_period START_sig = 1;
+    #ck_period START_sig = 0;
+
+    wait (!BUSY_sig);	// module self-times: hold until the frame is done
 end
 endtask // send_byte
     
