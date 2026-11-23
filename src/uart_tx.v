@@ -12,7 +12,7 @@ module uart_tx (
     reg [9:0]  shift_reg;          // {stop=1, data[7:0], start=0}
     reg [11:0] cnt;                // clocks inside the current bit period
     reg [3:0]  bit_num;            // index of the current bit 0..9
-    reg        busy;
+    reg        busy_t;             // registered BUSY output
 
     
     `ifdef QUESTA	// pre-defined macro in QuestaSim
@@ -26,14 +26,14 @@ module uart_tx (
             shift_reg <= 10'h3FF;            // all ones = idle high
             cnt       <= 12'd0;
             bit_num   <= 4'd0;
-            busy      <= 1'b0;
+            busy_t    <= 1'b0;
         end
-        else if (!busy) begin
+        else if (!busy_t) begin
             if (START) begin                 // load frame, start bit visible next cycle
                 shift_reg <= {1'b1, DATA, 1'b0};
                 cnt       <= 12'd0;
                 bit_num   <= 4'd0;
-                busy      <= 1'b1;
+                busy_t    <= 1'b1;
             end
         end
         else begin                           // transmitting
@@ -41,7 +41,7 @@ module uart_tx (
                 cnt <= 12'd0;          // end of one bit period
                 shift_reg <= {1'b1, shift_reg[9:1]};   // shift right, fill with idle '1'
                 if (bit_num == 4'd9)
-                    busy <= 1'b0;            // stop bit period complete, frame done
+                    busy_t <= 1'b0;            // stop bit period complete, frame done
                 else
                     bit_num <= bit_num + 4'd1;
             end
@@ -51,6 +51,6 @@ module uart_tx (
     end
 
     assign TX = shift_reg[0];    // LSB out, UART order
-    assign BUSY = busy;
+    assign BUSY = busy_t;
 
 endmodule
