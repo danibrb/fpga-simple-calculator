@@ -51,7 +51,10 @@ module simple_calculator(
 //  REG/WIRE declarations
 //=======================================================
 
-
+	wire       rstb = KEY[0];
+	wire [7:0] rx_data;
+	wire       rx_valid;
+	wire       tx_busy;
 
 
 //=======================================================
@@ -59,5 +62,48 @@ module simple_calculator(
 //=======================================================
 
 
+	// Receiver: PuTTY -> FPGA
+	uart_rx u_rx (
+		.CLK  (CLOCK_50),
+		.RSTb (rstb),
+		.RX   (UART_RXD),
+		.DATA (rx_data),
+		.VALID(rx_valid)
+	);
+
+	// Transmitter: FPGA -> PuTTY
+	uart_tx u_tx (
+		.CLK  (CLOCK_50),
+		.RSTb (rstb),
+		.START(rx_valid),
+		.DATA (rx_data),
+		.TX   (UART_TXD),
+		.BUSY (tx_busy)
+	);
+
+	// Unused outputs
+	assign UART_RTS = 1'b0;
+
+	// Debug: last received byte on the red LEDs, TX activity on a green LED
+	assign LEDR = {10'd0, rx_data};
+	assign LEDG = {8'd0, tx_busy};
+
+	// Switch off the unused displays (segments are active low)
+	assign HEX0 = 7'h7F;
+	assign HEX1 = 7'h7F;
+	assign HEX2 = 7'h7F;
+	assign HEX3 = 7'h7F;
+	assign HEX4 = 7'h7F;
+	assign HEX5 = 7'h7F;
+	assign HEX6 = 7'h7F;
+	assign HEX7 = 7'h7F;
+
+	assign LCD_BLON = 1'b0;
+	assign LCD_ON   = 1'b0;
+	assign LCD_EN   = 1'b0;
+	assign LCD_RS   = 1'b0;
+	assign LCD_RW   = 1'b0;
+	assign LCD_DATA = 8'hZZ;
 
 endmodule
+
